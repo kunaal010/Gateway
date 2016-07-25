@@ -1,0 +1,83 @@
+package D2L;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Select;
+
+import MyPack.DateTimeUtils;
+
+
+public class GatewayCC {
+
+	public static void NavigationToDeployment(String name) throws InterruptedException
+	{
+		FirefoxDriver driver = new FirefoxDriver();
+		driver.manage().deleteAllCookies();
+		driver.get("http://cengage.brightspacetrial.com/");
+		driver.findElementByXPath("//input[@id='username' and @class='form-control']").sendKeys("Cengage.f1");
+		driver.findElementByXPath("//input[@id='password']").sendKeys("Cengage123");
+		driver.findElementByXPath("//input[@name='Login']").click();
+		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		driver.findElementByXPath("//a[text()='Gateway QA Partner 2016']").click();
+		driver.findElementByXPath("//span[text()='Course Admin']").click();
+		driver.findElementByXPath("//a[text()='Course Builder']").click();
+		WebElement sourceObj=driver.findElementByXPath("//img[@alt='New 23rd Nov OREGON Test Inst D2L 10.5 Partner']");
+		WebElement targetObj=driver.findElementByXPath("//div[@class='courseBuilder_tree_displayNameWrapper' and text()='KD']");
+		Actions actObj= new Actions(driver);
+		actObj.dragAndDrop(sourceObj, targetObj).build().perform(); //drag and drop	
+		driver.switchTo().frame(driver.findElement(By.xpath("//iframe[@title='Content Selector - Gateway QA Partner 2016 - HE Brightspace']"))); //Switching frame
+		driver.switchTo().frame(driver.findElement(By.xpath("//iframe[@id='remoteIframe']")));
+		driver.findElement(By.xpath("//td[@class='deployments-name']//a[text()='"+name+"']")).click();
+		System.out.println(name);
+		CC_1stOption(name, driver); // Initiating Course Creation at Gateway end
+	}
+	
+	public static void CC_1stOption(String name, WebDriver driver) throws InterruptedException{
+		driver.findElement(By.xpath("//input[@id='selectedOption' and @value='CREATE_NEW']")).click();
+		driver.findElement(By.xpath("//input[@id='courseName']")).sendKeys(name);
+		driver.findElement(By.xpath("//input[@id='startDateAsString']")).sendKeys(DateTimeUtils.CourseDate());
+		driver.findElement(By.xpath("//input[@id='endDateAsString']")).sendKeys(DateTimeUtils.CourseDate_3Days());
+		Select region=new Select(driver.findElement(By.xpath("//select[@id='timezoneId']")));
+		region.selectByIndex(8);
+		driver.findElement(By.xpath("//span[@id='continuebutton' and @class='gatewaybutton']")).click();
+		driver.findElement(By.xpath("//span[@id='continuebutton' and @class='gatewaybutton']")).click();
+		driver.findElement(By.xpath("//li[@class='d2l-tool-areas-item']//a[text()='Content']")).click();
+		driver.findElement(By.xpath("//div[text()='KD']"));
+		driver.findElement(By.xpath("//a[contains(@title,'"+name+"')]")).click();
+		String oldWindow= driver.getWindowHandle();
+		for(String newWindow : driver.getWindowHandles()){
+			driver.switchTo().window(newWindow);
+		}
+		AppInterfaceInst(driver,oldWindow);
+	}
+	
+	public static void AppInterfaceInst(WebDriver driver,String window) throws InterruptedException{
+			Thread.sleep(5000);
+			driver.manage().timeouts().implicitlyWait(80, TimeUnit.SECONDS);
+			try{driver.findElement(By.xpath("//div[@class='splash_header']/a[@class='cancel splash_close nb_closeIcon']")).click();}catch(NoSuchElementException e){System.out.println("No welcome");}
+			try{driver.findElement(By.xpath("//div[@class='helpoverlay ui_help_overlay']//a[@class='close mxui_layout_positionable']")).click();}catch(NoSuchElementException e){System.out.println("No details");}
+						//driver.findElement(By.xpath("//p[@class='enter link buttons important cancel']/input[@id='nb_enter' and @value='Enter']")).click();
+			
+			driver.findElement(By.xpath("//a[@class='user-menu-link tb_item']")).click();
+			driver.findElement(By.xpath("//div[@class='user-menu']//a[@id='coursesettings']")).click();
+			String CourseKey= driver.findElement(By.xpath("//div[@class='courseKeyInfo']//strong[text()]")).getText();
+			System.out.println("Course Key= "+CourseKey); // Printing the course Key
+			driver.findElement(By.xpath("//div[@class='buttons']//a[text()='Cancel']")).click();
+			driver.findElement(By.xpath("//li[@title='Unit View']")).click();
+			driver.findElement(By.xpath("//div[@id='lpn_list_area']/ul/li[7]/div")).click();
+			Actions actObj=new Actions(driver);
+			actObj.moveToElement(driver.findElement(By.xpath("//div[@id='lpn_list_area']")));
+			driver.findElement(By.xpath("//div[@class='nb_edit']//a[@title='Edit']")).click();
+			driver.findElement(By.xpath("//input[@id='name']")).clear();
+			driver.findElement(By.xpath("//input[@id='name']")).sendKeys("16: Reconstruction: An Unfinished Revolution, 1865–1877"+DateTimeUtils.TimeStamp());
+			String ActivityName= driver.findElement(By.xpath("//input[@id='name']")).getText();
+			driver.findElement(By.xpath("//span[@id='init_save']")).click();
+	}
+}
+	
+

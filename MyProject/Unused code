@@ -1,0 +1,25 @@
+
+		driver.findElement(By.xpath("//li[@class='d2l-tool-areas-item']//a[text()='Content']")).click();
+		driver.findElement(By.xpath("//div[text()='KD']"));
+		String WinHandleBefore= driver.getWindowHandle(); //Saving the window handle for the previous window
+		driver.findElement(By.xpath("//a[contains(@title,'"+name+"')]")).click();
+		
+		for (String winHandle: driver.getWindowHandles()){  //Creating and saving the window handle for the new window
+			driver.switchTo().window(winHandle);
+		}
+		MindTap_Interface_Inst(driver,WinHandleBefore);
+	}
+		/*---Transferring Driver used in previous method and Window Handle of the new window to the following method--*/
+		public static void MindTap_Interface_Inst(WebDriver driver, String WinHandleBefore){
+			driver.findElement(By.xpath("//input[@id='nb_enter']")).click();
+			driver.findElement(By.xpath("//div[@class='helpoverlay ui_help_overlay']//a[@class='close mxui_layout_positionable']")).click();
+			driver.findElement(By.xpath("//a[@class='user-menu-link tb_item']")).click();
+			driver.findElement(By.xpath("//div[@class='user-menu']//a[@id='coursesettings']")).click();
+			String CourseKey= driver.findElement(By.xpath("//div[@class='courseKeyInfo']//strong[text()]")).getText();
+			System.out.println("Course Key= "+CourseKey);    // Printing the course Key
+			driver.findElement(By.xpath("//div[@class='buttons']//a[text()='Cancel']")).click();
+			driver.switchTo().window(WinHandleBefore);
+		}
+		
+		
+		public static void ActivityImport(){

@@ -1,0 +1,174 @@
+package MyPack;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JOptionPane;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Select;
+
+import D2L.GatewayCC;
+
+public class DeploymentTool {
+	
+	 static WebDriver driver;
+	 static String CourseName;
+	 static String DTWinHandle; 
+	 
+	 
+	public static void main(String[] args) throws InterruptedException {
+		
+		new DeploymentTool();
+		login();
+		CourseName= createLTIcourse();
+		testCourse();
+		GatewayCC.NavigationToDeployment(CourseName);
+		HideDeployment(DTWinHandle,CourseName);
+	}
+	
+	public DeploymentTool(){
+		String browser=JOptionPane.showInputDialog("Brower?");
+		driver=BrowserSelect(browser);
+	}
+		
+		public static WebDriver BrowserSelect(String BrowserInput){
+		WebDriver driver=null;
+		if (BrowserInput.equals("Chrome") || BrowserInput.equals("chrome")){
+			System.setProperty("webdriver.chrome.driver","D:/KD/Java_works/MyWorkspace/MyProject/chromedriver.exe");
+			driver= new ChromeDriver();
+		} else if (BrowserInput.equals("IE") || BrowserInput.equals("ie")){
+			System.setProperty("webdriver.ie.driver","D:/KD/Java_works/MyWorkspace/MyProject/IEDriverServer.exe");
+			driver=new InternetExplorerDriver();
+		} else if (BrowserInput.equals("Firefox") || BrowserInput.equals("firefox")){
+			driver=new FirefoxDriver();
+		} else{
+			System.out.println("Browser not supported");
+		}
+		return driver;
+	}
+
+	public static void login() throws InterruptedException{
+		
+		driver.manage().timeouts().implicitlyWait(1, TimeUnit.MINUTES); //waiting for elements to load
+	    	driver.manage().window().maximize();    //Maximizing the window
+	   
+		driver.get("https://cgatewayqa.cengage.com/deploytool/login/login.html"); //Launch
+		driver.findElement(By.id("about")).click();
+		//driver.manage().timeouts().implicitlyWait(1, TimeUnit.MINUTES); //waiting for elements to load
+		
+		String Git= driver.findElement(By.id("footerGitHash")).getText();
+		if(Git.isEmpty()) // Waiting for the element value to be present
+		{
+			Thread.sleep(3000);
+		}
+		Git= driver.findElement(By.id("footerGitHash")).getText();
+		String GateVersion= driver.findElement(By.id("footerAppVersion")).getText();
+		String DTVersion= driver.findElement(By.id("footerBuildVersion")).getText();
+		
+		driver.findElement(By.id("userId")).sendKeys("kunaaldwivedi@qainfotech.net");
+		driver.findElement(By.id("password")).sendKeys("Password1");
+		driver.manage().timeouts().implicitlyWait(1, TimeUnit.MINUTES); //waiting for elements to load
+
+		driver.findElement(By.id("btnLogin")).click(); // Login
+		
+		System.out.println("DT Git Hash = "+Git);	// Fetching the basic details of build
+		System.out.println("Gateway Build version ="+GateVersion);
+		System.out.println("Deployment Tool build version=" +DTVersion);
+	}
+	
+	public static String createLTIcourse() throws InterruptedException
+	{
+		driver.findElement(By.className("menuText")).click();
+		driver.findElement(By.xpath("//a[@id='btnCreateMindLinks']")).click();
+		driver.findElement(By.xpath("//select[@id='titleisbn10']")).click();
+		driver.findElement(By.xpath("//option[@value='0-495-91623-4']")).click();
+		driver.findElement(By.xpath("//button[@id='courseWizardNext']")).click();
+		driver.findElement(By.xpath("(.//*[@id='iacIsbn'])[2]")).click();
+		driver.findElement(By.xpath("//button[@type='button']//span[text()='Next']")).click();
+		driver.findElement(By.xpath("//input[@id='assignmentMode']")).click();
+		driver.findElement(By.xpath("//button[@type='button']//span[text()='Next']")).click();
+		//driver.manage().timeouts().implicitlyWait(1, TimeUnit.MINUTES);
+		Thread.sleep(3000);
+		String cName="QA Test PNv2 "+ DateTimeUtils.TimeStamp(); // Course Name Creation
+		driver.findElement(By.xpath(".//*[@id='courseName' and @class = 'contentTextBoxNormal contentTextBoxWidth']")).sendKeys(cName);
+		driver.findElement(By.xpath("//input[@id='displayName' and @class='contentTextBoxNormal contentTextBoxWidth']")).sendKeys(cName);
+		driver.findElement(By.xpath("//input[@id='version']")).sendKeys("1292");;
+		driver.findElement(By.xpath("*//button[@type='button']//span[text()='Next']")).click();
+		driver.findElement(By.xpath("//button[@type='button']//span[text()='Done']")).click(); // Course created
+		Thread.sleep(10000);
+		driver.findElement(By.xpath("//div[@id='courseWizardPage4']/preceding-sibling::div/a")).click();
+		Thread.sleep(3000);
+		driver.findElement(By.linkText(cName)).click();
+		return cName;
+	}
+	public static void testCourse() throws InterruptedException
+	{
+		Actions actObj= new Actions(driver);
+		WebElement deliverDropDown= driver.findElement(By.xpath("//label[@class='menuText' and text()='DELIVER COURSES']"));
+		actObj.moveToElement(deliverDropDown).build().perform();
+		
+		driver.findElement(By.xpath("//label[@class='menuText' and text()='Test Course']")).click();
+		driver.findElement(By.xpath("//button[@originalbuttontext='OK']//span[text()='OK']")).click();
+		String Institution="23rd Nov OREGON Test Inst D2L 10.5 Partner"; //Selecting Institution//QA Test 040316 ECKERD D2L 105 Partner
+		driver.findElement(By.xpath("//input[@id='name' and @class='search_init']")).sendKeys(Institution);
+		driver.findElement(By.xpath("//div[@id='submitInstFilterbtn']")).click(); //Applying filter on Institution
+		
+		WebElement selectInst=driver.findElement(By.xpath("//td[text()='"+Institution+"']")); // Selecting institution from the list
+		actObj.click(selectInst).build().perform();
+		
+		//driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		Thread.sleep(5000);
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Next']/parent::button")).click();
+		
+//		WebElement instSelect=driver.findElement(By.id("instructorSk"));  
+//		Select opts=new Select(instSelect);  //select method for handling drop-down box
+//		opts.selectByVisibleText("Summer, Texas");
+		
+		Select inst= new Select(driver.findElement(By.id("instructorSk"))); // Used select class to handle to 'select Instructor' drop-down.
+		inst.selectByIndex(1);
+		
+		driver.findElement(By.xpath("//span[@class='ui-button-text' and text()='Next']/parent::button")).click();
+		driver.findElement(By.xpath(".//*[@id='deploymentType' and @value='INSTITUTION']")).click();
+		driver.findElement(By.xpath(".//*[@id='deploymentType' and @value='INSTITUTION']")).click();
+		driver.findElement(By.xpath(".//input[@id='accessCode']")).click();
+		
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Next']/parent::button")).click();
+		Thread.sleep(3000);
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Next']/parent::button")).click();
+		Thread.sleep(3000);
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Next']/parent::button")).click();
+		
+		String deploymentID= driver.findElement(By.xpath("//div[@class='title smaller']")).getText(); //fetching Deployment ID
+		System.out.println("Deployment ID="+deploymentID);
+		System.out.println("Institution used="+Institution);
+		driver.findElement(By.xpath(".//input[@id='txtNothing1']")).sendKeys("kunaaldwivedi@qainfotech.net");
+		
+		Thread.sleep(3000);
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Next']/parent::button")).click();
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and text()='Deploy for Testing']/parent::button")).click();
+		Thread.sleep(6000);
+		driver.findElement(By.xpath("//span[@Class='ui-button-text' and @data-bind='text: submitText']/parent::button")).click();
+		
+		DTWinHandle = driver.getWindowHandle();
+	}
+		
+		public static void HideDeployment(String WindowHandle,String Name){
+			driver.switchTo().window(DTWinHandle);
+			driver.findElement(By.xpath("//div[@id='deploymentTab']")).click();
+			driver.findElement(By.xpath("//input[@id='courseName']")).clear();
+			driver.findElement(By.xpath("//input[@id='courseName']")).sendKeys(Name);
+			driver.findElement(By.xpath("//div[@id='submitFilterbtn']")).click();
+			
+			Actions actObj=new Actions(driver);
+			WebElement el= driver.findElement(By.xpath("//a[@id='data-header']/label[text()='MANAGE DEPLOYMENTS']"));
+			actObj.moveToElement(el);
+			driver.findElement(By.xpath("//a[@id='btnCourseAvailable']/label")).click();
+			driver.findElement(By.xpath(" //input[@id='displayContentSelector' and @value= 'false']")).click();
+			driver.findElement(By.xpath("//div[@class='ui-dialog-buttonset']/button[@class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only']/span[text()='Submit']")).click();
+		}
+}

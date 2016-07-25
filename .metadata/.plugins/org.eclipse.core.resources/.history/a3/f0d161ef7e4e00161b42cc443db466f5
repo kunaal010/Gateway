@@ -1,0 +1,33 @@
+package D2L;
+
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.firefox.FirefoxDriver;
+
+public class TestClass {
+
+	public static void main(String[] args) {
+		
+		FirefoxDriver driver = new FirefoxDriver();
+		driver.manage().deleteAllCookies();
+		driver.get("http://cengage.brightspacetrial.com/");
+		driver.findElementByXPath("//input[@id='username' and @class='form-control']").sendKeys("Cengage.f1");
+		driver.findElementByXPath("//input[@id='password']").sendKeys("Cengage123");
+		driver.findElementByXPath("//input[@name='Login']").click();
+		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		driver.findElementByXPath("//a[text()='Gateway QA Partner 2016']").click();
+		driver.findElement(By.xpath("//li[@class='d2l-tool-areas-item']//a[text()='Content']")).click();
+		driver.findElement(By.xpath("//div[text()='KD']"));
+		driver.findElement(By.xpath("//a[contains(@title,'QA Test PNv2 0902140716')]")).click();
+		String oldWindow= driver.getWindowHandle();
+		for(String newWindow : driver.getWindowHandles()){
+			driver.switchTo().window(newWindow);
+		}
+		
+	}
+
+}
+
+
+
